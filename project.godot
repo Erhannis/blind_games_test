@@ -15,10 +15,15 @@ run/main_scene="uid://83rkorrt5i72"
 config/features=PackedStringArray("4.6", "C#", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[audio]
+
+buses/default_bus_layout="uid://cl4gmcjxjsl45"
+
 [autoload]
 
 XRToolsUserSettings="*uid://bqgb8i74tm0t"
 XRToolsRumbleManager="*uid://by853dk86g1qw"
+ResonanceLogger="*uid://bq7nrlog0001"
 
 [dotnet]
 
@@ -26,7 +31,25 @@ project/assembly_name="Blind Games Tests"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/godot-xr-tools/plugin.cfg")
+enabled=PackedStringArray("res://addons/godot-xr-tools/plugin.cfg", "res://addons/nexus_resonance/plugin.cfg")
+
+[nexus]
+
+resonance/logger/categories_enabled={
+"bake": true,
+"init": true,
+"occlusion": true,
+"pathing": true,
+"realtime_rays": true,
+"reflections": true,
+"source_volume": true,
+"validation": true
+}
+resonance/logger/output_to_debug=true
+resonance/logger/output_to_file=false
+resonance/logger/file_path="user://nexus_resonance_log.ndjson"
+resonance/logger/steam_audio_verbose=false
+resonance/bake/default_output_directory="res://audio_data/"
 
 [physics]
 

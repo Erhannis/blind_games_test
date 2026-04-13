@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ResonanceServer" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Singleton managing Steam Audio context, scene, and simulation. Driven by ResonanceRuntime.
+	</brief_description>
+	<description>
+		ResonanceServer is the low-level Steam Audio engine. Typically accessed via [ResonanceRuntime] and [ResonancePlayer]. Use get_singleton() for advanced scripting. Controls listener position, geometry, probe batches, and simulation tick. Debug flags (debug_occlusion, debug_reflections, debug_pathing) enable ray visualization; output_direct and output_reverb gate direct/reverb output for debugging.
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get_sample_rate" qualifiers="const">
+			<return type="int" />
+			<description>
+				Returns the current sample rate from AudioServer.
+			</description>
+		</method>
+		<method name="get_version">
+			<return type="String" />
+			<description>
+				Returns Nexus Resonance version string.
+			</description>
+		</method>
+		<method name="is_initialized" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true if the Steam Audio engine is initialized.
+			</description>
+		</method>
+		<method name="is_simulating" qualifiers="const">
+			<return type="bool" />
+			<description>
+				Returns true when the server can run acoustic simulation: static triangle count &gt; 0 for normal tracers, or [code]scene_type[/code] Custom with a valid [World3D] from [method set_physics_world].
+			</description>
+		</method>
+		<method name="notify_geometry_changed">
+			<return type="void" />
+			<param index="0" name="triangle_delta" type="int" />
+			<description>
+				Notifies the server of geometry change (triangle count delta). Called when dynamic geometry is added/removed.
+			</description>
+		</method>
+		<method name="refresh_all_geometry_from_scene_tree">
+			<return type="void" />
+			<description>
+				Traverses the active scene tree and calls [method ResonanceGeometry.refresh_geometry] on every [ResonanceGeometry] node. Call from the main thread after [method load_scene_data] replaces the Phonon scene (the server also schedules this automatically when a load succeeds). Rebuilds [ResonanceDynamicGeometry] instanced meshes and static runtime handles so occlusion, reflections, and pathing see the new scene.
+			</description>
+		</method>
+		<method name="load_scene_data">
+			<return type="void" />
+			<param index="0" name="filename" type="String" />
+			<description>
+				Loads serialized Steam Audio scene data from disk into the runtime scene. On success, defers [method refresh_all_geometry_from_scene_tree] so [ResonanceDynamicGeometry] and other geometry nodes re-register against the new IPL scene.
+			</description>
+		</method>
+		<method name="save_scene_data">
+			<return type="void" />
+			<param index="0" name="filename" type="String" />
+			<description>
+				Saves the current Steam Audio scene to a serialized file ([code]IPL_SCENETYPE_DEFAULT[/code] only; see Steam Audio docs).
+			</description>
+		</method>
+		<method name="tick">
+			<return type="void" />
+			<param index="0" name="delta" type="float" />
+			<description>
+				Advances simulation (pathing, reflections). Called each frame by ResonanceRuntime. When [code]scene_type[/code] is Custom, runs Steam Audio [code]iplSimulatorRun*[/code] on the main thread (no background worker).
+			</description>
+		</method>
+		<method name="set_physics_world">
+			<return type="void" />
+			<param index="0" name="world" type="World3D" />
+			<description>
+				Sets the Godot [World3D] for Custom-scene physics raycasts. [ResonanceRuntime] updates this from the viewport each frame when the server is initialized.
+			</description>
+		</method>
+		<method name="set_physics_ray_exclude_rids">
+			<return type="void" />
+			<param index="0" name="exclude" type="Array" />
+			<description>
+				User list of [RID]s excluded from Custom-scene ray queries (same as [code]PhysicsRayQueryParameters3D.exclude[/code]). The server merges this with [method set_listener_physics_ray_exclude_rids] and auto-registered source colliders from [member ResonancePlayer.physics_ray_auto_exclude_collision_bodies] before passing the combined array to Godot.
+			</description>
+		</method>
+		<method name="set_listener_physics_ray_exclude_rids">
+			<return type="void" />
+			<param index="0" name="rids" type="Array" />
+			<description>
+				Replaces the listener-side exclude list (typically [code]CollisionObject3D[/code] RIDs on the camera parent chain and nodes in the [code]resonance_listener[/code] group). [ResonanceRuntime] sets this each frame when [method uses_custom_ray_tracer] is true. Merged with [method set_physics_ray_exclude_rids] and source auto-excludes.
+			</description>
+		</method>
+		<method name="get_simulation_worker_timing" qualifiers="const">
+			<return type="Dictionary" />
+			<description>
+				Returns profiling timings from the [b]last[/b] simulation step only (microseconds): [code]us_run_direct[/code], [code]us_run_reflections[/code], [code]us_run_pathing[/code], [code]us_sync_fetch[/code] ([code]_worker_sync_fetch_caches[/code]). Normally updated from the background worker; when [code]scene_type[/code] is Custom, updated from the main-thread [method tick] instead. Reflections/pathing entries are 0 when that step did not run. Use [code]us_run_pathing[/code] to compare pathing cost when tuning [member ResonanceRuntimeConfig.pathing_num_vis_samples], [member ResonanceRuntimeConfig.simulation_update_interval], and player path validation / alternate paths. Shown in the debug overlay Reverb Bus expert section. Cleared by [method reset_pathing_instrumentation].
+			</description>
+		</method>
+		<method name="set_listener_valid">
+			<return type="void" />
+			<param index="0" name="valid" type="bool" />
+			<description>
+				Set whether the listener is valid for pathing. When false, RunPathing is skipped (saves CPU). On Windows, iplSimulatorRunPathing is wrapped in SEH—crashes from unreachable listener (ghost through walls, noclip) are caught; pathing skips that frame and continues.
+			</description>
+		</method>
+		<method name="update_listener">
+			<return type="void" />
+			<param index="0" name="pos" type="Vector3" />
+			<param index="1" name="dir" type="Vector3" />
+			<param index="2" name="up" type="Vector3" />
+			<description>
+				Updates listener position and orientation. Called by ResonanceListener or ResonanceRuntime fallback.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="debug_occlusion" type="bool" setter="set_debug_occlusion" getter="is_debug_occlusion_enabled" default="true">
+			Enable occlusion ray visualization (source rays).
+		</member>
+		<member name="debug_reflections" type="bool" setter="set_debug_reflections" getter="is_debug_reflections_enabled" default="true">
+			Enable reflection ray visualization. Requires Realtime Rays > 0 in ResonanceRuntimeConfig.
+		</member>
+		<member name="debug_pathing" type="bool" setter="set_debug_pathing" getter="is_debug_pathing_enabled" default="false">
+			Enable pathing segment visualization (green = unoccluded, red = occluded).
+		</member>
+		<member name="output_direct" type="bool" setter="set_output_direct_enabled" getter="is_output_direct_enabled" default="false">
+			Enable direct sound output. For debugging; normally true via config.
+		</member>
+		<member name="output_reverb" type="bool" setter="set_output_reverb_enabled" getter="is_output_reverb_enabled" default="true">
+			Enable reverb output. For debugging; normally true via config.
+		</member>
+	</members>
+</class>

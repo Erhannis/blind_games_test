@@ -3,10 +3,31 @@
 [ext_resource type="Script" uid="uid://cuxv5kht6v7gx" path="res://XrOrigin3d.cs" id="1_ig7tw"]
 [ext_resource type="AudioStream" uid="uid://6bw6tkjbur20" path="res://assets/square_220.wav" id="2_h2yge"]
 [ext_resource type="AudioStream" uid="uid://c0n8egueq1rjt" path="res://assets/sine_330.wav" id="3_1bvp3"]
+[ext_resource type="Script" uid="uid://5yonvraqmtar" path="res://addons/nexus_resonance/scripts/resonance_player_config.gd" id="3_lquwl"]
+[ext_resource type="Script" uid="uid://ce4ndx5pja3qn" path="res://addons/nexus_resonance/scripts/resonance_runtime.gd" id="5_7mycd"]
+[ext_resource type="ResonanceProbeData" uid="uid://b784yqf7k8vso" path="res://audio_data/main_resonanceprobevolume_baked_probes.tres" id="5_kek77"]
+[ext_resource type="Script" uid="uid://l856scjpr7vq" path="res://addons/nexus_resonance/scripts/resonance_runtime_config.gd" id="6_272bh"]
+[ext_resource type="ResonanceMaterial" uid="uid://rb8c736kvibo" path="res://addons/nexus_resonance/materials/brick.tres" id="7_272bh"]
+[ext_resource type="ResonanceGeometryAsset" uid="uid://yrqambs0d66b" path="res://audio_data/main_static.tres" id="9_4c57u"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_h2yge"]
 
+[sub_resource type="Resource" id="Resource_7mycd"]
+script = ExtResource("3_lquwl")
+min_distance = 0.1
+source_radius = 0.1
+directivity_enabled = true
+directivity_weight = 1.0
+directivity_power = 2.3
+direct_binaural_override = 1
+metadata/_custom_type_script = "uid://5yonvraqmtar"
+
 [sub_resource type="SphereMesh" id="SphereMesh_1bvp3"]
+
+[sub_resource type="Resource" id="Resource_5vw27"]
+script = ExtResource("6_272bh")
+
+[sub_resource type="BoxMesh" id="BoxMesh_7mycd"]
 
 [node name="Node3D" type="Node3D" unique_id=1129802793]
 
@@ -26,7 +47,8 @@ tracker = &"right_hand"
 transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, -0.2358566, 0, 0)
 mesh = SubResource("BoxMesh_h2yge")
 
-[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="MeshInstance3D" unique_id=1568762064]
+[node name="ResonancePlayer" type="ResonancePlayer" parent="MeshInstance3D" unique_id=2027773338]
+player_config = SubResource("Resource_7mycd")
 stream = ExtResource("2_h2yge")
 attenuation_model = 1
 unit_size = 0.1
@@ -41,3 +63,25 @@ transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
 stream = ExtResource("3_1bvp3")
 attenuation_model = 1
 unit_size = 0.1
+
+[node name="ResonanceProbeVolume" type="ResonanceProbeVolume" parent="." unique_id=2036057140]
+probe_data = ExtResource("5_kek77")
+
+[node name="ResonanceRuntime" type="Node" parent="." unique_id=1414826067]
+process_priority = 100
+process_physics_priority = 100
+script = ExtResource("5_7mycd")
+runtime = SubResource("Resource_5vw27")
+metadata/_custom_type_script = "uid://ce4ndx5pja3qn"
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="." unique_id=208725283]
+transform = Transform3D(0.1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9135187, 0, 0.016321301)
+mesh = SubResource("BoxMesh_7mycd")
+
+[node name="ResonanceStaticGeometry" type="ResonanceStaticGeometry" parent="MeshInstance3D3" unique_id=889157263]
+material = ExtResource("7_272bh")
+
+[node name="ResonanceStaticScene" type="ResonanceStaticScene" parent="." unique_id=1842122486]
+static_scene_asset = ExtResource("9_4c57u")
+scene_name_when_exported = "main"
+export_hash = 6608833066847112021

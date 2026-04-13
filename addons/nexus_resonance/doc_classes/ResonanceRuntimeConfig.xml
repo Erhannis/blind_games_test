@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="ResonanceRuntimeConfig" inherits="Resource" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../class.xsd">
+	<brief_description>
+		Runtime configuration resource for Nexus Resonance. Structure aligned with Steam Audio Settings.
+	</brief_description>
+	<description>
+		Nexus Resonance runtime configuration resource. Create or link in ResonanceRuntime node (Add Child Node > ResonanceRuntime). Structure and group order follow Steam Audio Settings: HRTF Settings, Ray Tracer Settings, Occlusion Settings, Real-time Reflections, Baked Reverb, Baked Pathing, Simulation Update, Reflection Effect, Hybrid Reverb, Reverb Output, Physics. Emits reflection_type_changed, pathing_enabled_changed, and audio_frame_size_changed when those settings change.
+	</description>
+	<tutorials>
+	</tutorials>
+	<signals>
+		<signal name="reflection_type_changed">
+			<param index="0" name="new_type" type="int" />
+			<description>
+				Emitted when reflection_type changes.
+			</description>
+		</signal>
+		<signal name="pathing_enabled_changed">
+			<param index="0" name="enabled" type="bool" />
+			<description>
+				Emitted when pathing_enabled changes.
+			</description>
+		</signal>
+		<signal name="audio_frame_size_changed">
+			<param index="0" name="new_size" type="int" />
+			<description>
+				Emitted when audio_frame_size changes (inspector value: 0 = Auto, or 256 / 512 / 1024 / 2048). In the editor, [ResonanceRuntime] reconnects the native audio engine when the server is already initialized (brief audio interruption).
+			</description>
+		</signal>
+	</signals>
+	<methods>
+		<method name="get_effective_realtime_rays" qualifiers="static">
+			<return type="int" />
+			<param index="0" name="realtime_rays" type="int" />
+			<param index="1" name="os_name" type="String" />
+			<description>
+				Returns [param realtime_rays] unchanged on all platforms. [param os_name] is reserved for future per-OS caps; pass [method OS.get_name] when calling.
+			</description>
+		</method>
+		<method name="get_bus_effective">
+			<return type="StringName" />
+			<description>
+				Returns effective bus for Direct + Pathing (player output). Empty config = Master.
+			</description>
+		</method>
+		<method name="get_reverb_bus_name_effective">
+			<return type="StringName" />
+			<description>
+				Returns effective reverb bus name. Empty config = ResonanceReverb.
+			</description>
+		</method>
+		<method name="get_hrtf_sofa_effective">
+			<return type="ResonanceSOFAAsset" />
+			<description>
+				Returns the active custom SOFA for engine init: entry from [member hrtf_sofa_assets] at [member hrtf_sofa_selected_index], or the first list entry with SOFA data if that slot is empty. Returns null if the list is empty or no entry has valid data (default embedded HRTF).
+			</description>
+		</method>
+		<method name="get_config">
+			<return type="Dictionary" />
+			<description>
+				Returns config dictionary for [method ResonanceServer.init_audio_engine]. Includes sample_rate from AudioServer. Does not include [member bus] or [member reverb_bus_name]; Godot bus routing is handled by [ResonanceRuntime] only.
+			</description>
+		</method>
+		<method name="create_default" qualifiers="static">
+			<return type="ResonanceRuntimeConfig" />
+			<description>
+				Creates a default runtime config for editor/fallback when no ResonanceRuntime in scene.
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="sample_rate_override" type="int" default="0">
+			Sample rate override. 0 = Use Godot Mix Rate (follow project settings). Other values = override; mismatch may cause audio issues (no resampling).
+		</member>
+		<member name="audio_frame_size" type="int" default="0">
+			Steam Audio block size. Auto (0) = derive from Project Settings audio/driver/output_latency. Manual (256/512/1024/2048) = override for performance tuning. After changing while the game runs from the editor, [ResonanceRuntime] triggers [method ResonanceServer.reinit_audio_engine] via [signal audio_frame_size_changed] (same pattern as [signal reflection_type_changed]).
+		</member>
+		<member name="ambisonic_order" type="int" default="1">
+			Ambisonic order for reverb encoding: 1st Order, 2nd Order, or 3rd Order. Higher = more spatial detail, more CPU.
+		</member>
+		<member name="max_reverb_duration" type="float" default="2.0">
+			Upper bound for simulator / ReflectionMixer IR allocation (seconds): caps [code]simulation_settings.maxDuration[/code] and bundled convolution IR size. Not the per-run simulation length (see [member realtime_simulation_duration]).
+		</member>
+		<member name="realtime_rays" type="int" default="0">
+			Realtime raytracing rays: 0 (baked-only reflections/reverb; typical with parametric + baked pathing), 64–8192. High counts dominate CPU. Simulation uses [member scene_type]; on platforms without Embree or OpenCL the native layer falls back to the built-in (Default) tracer.
+		</member>
+		<member name="realtime_bounces" type="int" default="4">
+			Realtime reflection bounces (1–64).
+		</member>
+		<member name="scene_type" type="int" default="1">
+			Ray tracer backend: Default (0) = built-in Phonon; Embree (1) = Intel CPU; Radeon Rays (2) = OpenCL (Windows 64-bit oriented); Custom (3) = [code]IPL_SCENETYPE_CUSTOM[/code] using Godot 3D physics [code]intersect_ray[/code] ([member physics_ray_collision_mask]). Custom runs Steam Audio simulation on the main thread; [ResonanceGeometry] meshes are not uploaded. Bakes and mesh assets still use the built-in tracer. Avoid [code]physics/3d/run_on_separate_thread[/code] if possible (see Godot physics threading notes).
+		</member>
+		<member name="physics_ray_collision_mask" type="int" default="-1">
+			Physics ray collision mask when [member scene_type] is Custom. [code]-1[/code] means all layers. Same semantics as [code]PhysicsRayQueryParameters3D.collision_mask[/code].
+		</member>
+		<member name="opencl_device_type" type="int" default="0">
+			OpenCL device type when scene_type is Radeon Rays or reflection_type is TrueAudio Next: GPU (0), CPU (1), or Any (2). Helps when GPU has OpenCL issues.
+		</member>
+		<member name="opencl_device_index" type="int" default="0">
+			OpenCL device index (0 = first matching device). Use when multiple GPUs present.
+		</member>
+		<member name="realtime_irradiance_min_distance" type="float" default="0.1">
+			Min distance for irradiance sampling (0.05–10.0 m). Only when Realtime Rays > 0.
+		</member>
+		<member name="realtime_simulation_duration" type="float" default="2.0">
+			Impulse response length (seconds) for real-time simulation shared inputs ([code]IPLSimulationSharedInputs.duration[/code]) each run. Distinct from [member max_reverb_duration] (allocator / mixer IR cap). Range 0.1–10.0 s.
+		</member>
+		<member name="realtime_num_diffuse_samples" type="int" default="32">
+			Diffuse samples per reflection point (8–64).
+		</member>
+		<member name="default_reflections_mode" type="int" default="0">
+			When sources use Use Global reflections_type: Baked (0) = probe interpolation; Realtime (1) = raytracing (requires realtime_rays &gt; 0).
+		</member>
+		<member name="reflection_type" type="int" default="0">
+			Reverb algorithm: Convolution (0), Parametric (1), Hybrid (2), TrueAudio Next (3, AMD GPU only).
+		</member>
+		<member name="hybrid_reverb_transition_time" type="float" default="1.0">
+			Hybrid reverb: length (seconds) of IR used for convolution before parametric tail. Only when reflection_type is Hybrid.
+		</member>
+		<member name="hybrid_reverb_overlap_percent" type="int" default="25">
+			Hybrid reverb: overlap percent (0–100) for crossfade between convolution and parametric parts.
+		</member>
+		<member name="reverb_binaural" type="bool" default="true">
+			Apply binaural rendering to reverb.
+		</member>
+		<member name="use_virtual_surround" type="bool" default="false">
+			Use virtual surround instead of HRTF.
+		</member>
+		<member name="direct_speaker_channels" type="int" default="2">
+			Direct path without HRTF: [code]IPLSpeakerLayout[/code] channel count (1 Mono, 2 Stereo, 4 Quad, 6 5.1, 8 7.1). With surround and Ambisonics encode, non-HRTF sources use [code]iplAmbisonicsPanningEffect[/code]; otherwise [code]iplPanningEffect[/code]. Godot [code]AudioStreamPlayback[/code] output remains stereo (fold-down inside the player). Invalid values become stereo at runtime. Requires [method ResonanceServer.reinit_audio_engine] after change while running.
+		</member>
+		<member name="hrtf_volume_db" type="float" default="0.0">
+			HRTF gain in dB for the embedded default HRTF. With custom SOFA, added (in dB) to each asset's volume before gain conversion.
+		</member>
+		<member name="hrtf_normalization_type" type="int" default="0">
+			Normalization for embedded default HRTF only: None (0) or RMS (1). Custom SOFA uses [member ResonanceSOFAAsset.norm_type] on the asset.
+		</member>
+		<member name="hrtf_sofa_assets" type="Array" default="[]">
+			SOFA HRTF resources. [member hrtf_sofa_selected_index] selects the active file. Empty = default embedded HRTF.
+		</member>
+		<member name="hrtf_sofa_selected_index" type="int" default="0">
+			Index into [member hrtf_sofa_assets] for the active SOFA (clamped at runtime).
+		</member>
+		<member name="hrtf_interpolation_bilinear" type="bool" default="false">
+			Use bilinear HRTF interpolation.
+		</member>
+		<member name="reverb_influence_radius" type="float" default="10000.0">
+			Baked reverb influence radius in meters.
+		</member>
+		<member name="reverb_max_distance" type="float" default="0.0">
+			Max reverb distance (0 = unlimited).
+		</member>
+		<member name="bus" type="StringName" default="Master">
+			Target bus for Direct + Pathing (player output). Empty = Master. Fallback when players use Global bus override.
+		</member>
+		<member name="reverb_bus_name" type="StringName" default="ResonanceReverb">
+			Bus for convolution reverb (effect and activator). Empty = use Project Settings default. Reverb output is sent to [member bus].
+		</member>
+		<member name="reverb_transmission_amount" type="float" default="1.0">
+			How much transmission damps reverb (0–1). 0 = no damping, 1 = full damping (reverb scaled by material transmission).
+		</member>
+		<member name="pathing_enabled" type="bool" default="false">
+			Enable pathing (multi-path sound propagation). Requires baked pathing in Probe Volumes.
+		</member>
+		<member name="pathing_normalize_eq" type="bool" default="true">
+			Pathing: normalize EQ on path effect output. Prevents pathing from sounding too bright.
+		</member>
+		<member name="pathing_num_vis_samples" type="int" default="4">
+			Runtime pathing: Steam Audio numVisSamples (1–16). Lower = less CPU; bake quality uses bake_pathing_num_samples on ResonanceBakeConfig.
+		</member>
+		<member name="path_validation_enabled" type="bool" default="true">
+			Default path validation when a ResonancePlayerConfig uses Use Global (-1) for [member ResonancePlayerConfig.path_validation_override]. Validates baked paths against dynamic geometry each update.
+		</member>
+		<member name="find_alternate_paths" type="bool" default="false">
+			Default find-alternate-paths when a player uses Use Global (-1) for [member ResonancePlayerConfig.find_alternate_paths_override]. Only applies when path validation is effectively enabled for that source.
+		</member>
+		<member name="transmission_type" type="int" default="1">
+			Direct-effect transmission frequency mode (Steam Audio [code]IPLTransmissionType[/code]): FreqIndependent (0) = one blended coefficient; FreqDependent (1) = low/mid/high bands. Controls how material transmission is applied in the direct processor, not geometry-edge blending. Steam Audio [code]IPLSimulationInputs[/code] has no separate “volumetric transmission” switch (only [code]numTransmissionRays[/code] for path depth).
+		</member>
+		<member name="occlusion_type" type="int" default="1">
+			Occlusion: Raycast (0) = binary hit test; Volumetric (1) = fractional occlusion from samples ([code]numOcclusionSamples[/code]). Independent of [member transmission_type].
+		</member>
+		<member name="max_occlusion_samples" type="int" default="64">
+			Simulator cap for volumetric occlusion ([code]maxNumOcclusionSamples[/code]). Per-source occlusion samples are clamped to this value.
+		</member>
+		<member name="max_simulation_sources" type="int" default="32">
+			Maximum simultaneous sources for realtime reflection simulation ([code]maxNumSources[/code]) and TrueAudio Next [code]maxSources[/code].
+		</member>
+		<member name="geometry_update_throttle" type="int" default="4">
+			Throttle geometry updates: apply every Nth update (1–16). Reduces CPU with animated objects.
+		</member>
+		<member name="simulation_tick_throttle" type="int" default="1">
+			Run the simulation worker every Nth frame from [ResonanceRuntime] (1 = every frame). Higher values reduce CPU from direct simulation and cache sync; occlusion updates less often. Pairs with [member simulation_update_interval] (Steam Audio Unity: combined simulation load vs. frame rate).
+		</member>
+		<member name="simulation_update_interval" type="float" default="0.1">
+			Minimum seconds between [code]RunReflections[/code] and [code]RunPathing[/code] on the worker (Steam Audio Unity: [i]Simulation Update Interval[/i]). Direct simulation still runs each worker wake. [code]0[/code] = heavy sim every worker tick; [code]0.1[/code] = 100 ms; larger values (e.g. 0.15–0.25) reduce CPU when pathing/reflection follow can lag slightly.
+		</member>
+		<member name="simulation_cpu_cores_percent" type="float" default="0.15">
+			Fraction of CPU cores for Steam Audio simulation threads (0–1). Default 0.15; higher = more parallelism for reflections/pathing, more CPU.
+		</member>
+		<member name="context_simd_level" type="int" default="-1">
+			SIMD level cap: -1 = default (AVX512), 0 = AVX512, 1 = AVX2, 2 = AVX, 3 = SSE4, 4 = SSE2. Lower = more CPU compatible.
+		</member>
+		<member name="context_validation" type="bool" default="false">
+			Enable Steam Audio context validation ([code]IPL_CONTEXTFLAGS_VALIDATION[/code]). Extra API checks; may log warnings (use for debugging).
+		</member>
+		<member name="perspective_correction_enabled" type="bool" default="false">
+			Enable perspective correction for reverb.
+		</member>
+		<member name="perspective_correction_factor" type="float" default="1.0">
+			Perspective correction factor (0.5–2.0).
+		</member>
+	</members>
+</class>
