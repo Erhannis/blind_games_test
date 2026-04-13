@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://83rkorrt5i72"]
+
+[ext_resource type="Script" uid="uid://cuxv5kht6v7gx" path="res://XrOrigin3d.cs" id="1_ig7tw"]
+[ext_resource type="AudioStream" uid="uid://6bw6tkjbur20" path="res://assets/square_220.wav" id="2_h2yge"]
+[ext_resource type="AudioStream" uid="uid://c0n8egueq1rjt" path="res://assets/sine_330.wav" id="3_1bvp3"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_h2yge"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_1bvp3"]
+
+[node name="Node3D" type="Node3D" unique_id=1129802793]
+
+[node name="XROrigin3D" type="XROrigin3D" parent="." unique_id=1092155025]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.44763857)
+script = ExtResource("1_ig7tw")
+
+[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D" unique_id=1307463593]
+
+[node name="XRController3D_left" type="XRController3D" parent="XROrigin3D" unique_id=1619434255]
+tracker = &"left_hand"
+
+[node name="XRController3D2_right" type="XRController3D" parent="XROrigin3D" unique_id=1692960622]
+tracker = &"right_hand"
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=2014682767]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, -0.2358566, 0, 0)
+mesh = SubResource("BoxMesh_h2yge")
+
+[node name="AudioStreamPlayer3D" type="AudioStreamPlayer3D" parent="MeshInstance3D" unique_id=1568762064]
+stream = ExtResource("2_h2yge")
+attenuation_model = 1
+unit_size = 0.1
+autoplay = true
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=1242979464]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0.290155, 0, 0)
+mesh = SubResource("SphereMesh_1bvp3")
+
+[node name="AudioStreamPlayer3D2" type="AudioStreamPlayer3D" parent="MeshInstance3D2" unique_id=1951203307]
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+stream = ExtResource("3_1bvp3")
+attenuation_model = 1
+unit_size = 0.1
