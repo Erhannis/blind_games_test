@@ -1,5 +1,7 @@
 Switch back to compat renderer eventually
 Fix vertical auralization
+Reverb is, uh, weird
+  I put a source near the center of a big wall, and when I sit near the right edge of the wall and face sorta towards the source, I can hear the sound loudly from my right ear, as if the spot on the wall nearest me were emitting the sound
 Enable: ?
   Doppler
   Realtime reflections

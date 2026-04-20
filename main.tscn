@@ -179,4 +179,5 @@ runtime = SubResource("Resource_5vw27")
 metadata/_custom_type_script = "uid://ce4ndx5pja3qn"
 
 [connection signal="button_pressed" from="XROrigin3D/XRController3D_left" to="XROrigin3D/XRController3D_left" method="_on_button_pressed"]
+[connection signal="button_released" from="XROrigin3D/XRController3D_left" to="XROrigin3D/XRController3D_left" method="_on_button_released"]
 [connection signal="button_pressed" from="XROrigin3D/XRController3D_right" to="XROrigin3D/XRController3D_right" method="_on_button_pressed"]
