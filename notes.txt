@@ -2,6 +2,10 @@ Switch back to compat renderer eventually
 Fix vertical auralization
 Reverb is, uh, weird
   I put a source near the center of a big wall, and when I sit near the right edge of the wall and face sorta towards the source, I can hear the sound loudly from my right ear, as if the spot on the wall nearest me were emitting the sound
+  When I enable realtime pathing (and/or some other stuff), if I click near the source I get the two sources, then the FIRST time I click near the edge of the wall I get the weird behavior, and then no more until I click near the source again.
+    Sorta like it's not updating BEFORE playing, only after.
+    Actually seems like this applies to normal sound playing, not just reverb
+      I move a source far away, trigger it, move it close, trigger it, it sounds far away, trigger it again, it sounds close.
 Enable: ?
   Doppler
   Realtime reflections

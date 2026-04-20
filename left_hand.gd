@@ -11,7 +11,10 @@ func _on_button_pressed(name: String) -> void:
 	match name:
 		"trigger_click":
 			print("left ping")
-			#resonance_player_left_hand.play()
+			resonance_player_left_hand.play()
+			#resonance_player_sphere.play()
+		"menu_click":
+			print("left sphere")
 			resonance_player_sphere.play()
 		"primary_click":
 			print("left track down")
