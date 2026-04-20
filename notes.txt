@@ -1,3 +1,7 @@
+Modes:
+  echolocation
+  lidar ping
+    if you use e.g. a tone or static, you could sweep it across surfaces
 Switch back to compat renderer eventually
 Fix vertical auralization
 Reverb is, uh, weird

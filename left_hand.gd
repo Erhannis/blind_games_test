@@ -13,7 +13,7 @@ func _on_button_pressed(name: String) -> void:
 			print("left ping")
 			resonance_player_left_hand.play()
 			#resonance_player_sphere.play()
-		"menu_click":
+		"menu_button":
 			print("left sphere")
 			resonance_player_sphere.play()
 		"primary_click":
