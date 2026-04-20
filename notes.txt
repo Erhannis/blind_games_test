@@ -1,1 +1,8 @@
 Switch back to compat renderer eventually
+Fix vertical auralization
+Enable: ?
+  Doppler
+  Realtime reflections
+  Pathing
+  Increase cpu cores?
+  Raytracing

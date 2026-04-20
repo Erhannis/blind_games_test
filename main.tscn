@@ -1,72 +1,133 @@
 [gd_scene format=3 uid="uid://83rkorrt5i72"]
 
 [ext_resource type="Script" uid="uid://cuxv5kht6v7gx" path="res://XrOrigin3d.cs" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://vl8v71iwdwf7" path="res://right_hand.gd" id="2_efxa6"]
 [ext_resource type="AudioStream" uid="uid://6bw6tkjbur20" path="res://assets/square_220.wav" id="2_h2yge"]
+[ext_resource type="Script" uid="uid://b0thddf3n8wts" path="res://left_hand.gd" id="2_ycdy4"]
 [ext_resource type="AudioStream" uid="uid://c0n8egueq1rjt" path="res://assets/sine_330.wav" id="3_1bvp3"]
 [ext_resource type="Script" uid="uid://5yonvraqmtar" path="res://addons/nexus_resonance/scripts/resonance_player_config.gd" id="3_lquwl"]
+[ext_resource type="Script" uid="uid://cp7261ew6822g" path="res://addons/nexus_resonance/scripts/resonance_bake_config.gd" id="3_vivmo"]
+[ext_resource type="AudioStream" uid="uid://b0dv73h25rg3k" path="res://assets/chirp.wav" id="4_dg77c"]
 [ext_resource type="Script" uid="uid://ce4ndx5pja3qn" path="res://addons/nexus_resonance/scripts/resonance_runtime.gd" id="5_7mycd"]
 [ext_resource type="ResonanceProbeData" uid="uid://b784yqf7k8vso" path="res://audio_data/main_resonanceprobevolume_baked_probes.tres" id="5_kek77"]
+[ext_resource type="ResonanceMaterial" uid="uid://0i8hkjm6fej5" path="res://addons/nexus_resonance/materials/fabric.tres" id="6_4c57u"]
 [ext_resource type="Script" uid="uid://l856scjpr7vq" path="res://addons/nexus_resonance/scripts/resonance_runtime_config.gd" id="6_272bh"]
-[ext_resource type="ResonanceMaterial" uid="uid://rb8c736kvibo" path="res://addons/nexus_resonance/materials/brick.tres" id="7_272bh"]
 [ext_resource type="ResonanceGeometryAsset" uid="uid://yrqambs0d66b" path="res://audio_data/main_static.tres" id="9_4c57u"]
+[ext_resource type="Script" uid="uid://cwdbmhibpopp" path="res://rotate.cs" id="9_dg77c"]
+[ext_resource type="ResonanceMaterial" uid="uid://cr8tomin3vtbp" path="res://addons/nexus_resonance/materials/concrete.tres" id="14_w48qg"]
 
-[sub_resource type="BoxMesh" id="BoxMesh_h2yge"]
+[sub_resource type="Resource" id="Resource_2cqfq"]
+script = ExtResource("3_vivmo")
+pathing_enabled = true
+static_source_enabled = true
+metadata/_custom_type_script = "uid://cp7261ew6822g"
+
+[sub_resource type="Environment" id="Environment_w48qg"]
+ambient_light_color = Color(0.85416746, 0.9342594, 0.53847003, 1)
 
 [sub_resource type="Resource" id="Resource_7mycd"]
 script = ExtResource("3_lquwl")
 min_distance = 0.1
 source_radius = 0.1
-directivity_enabled = true
 directivity_weight = 1.0
 directivity_power = 2.3
 direct_binaural_override = 1
 metadata/_custom_type_script = "uid://5yonvraqmtar"
 
+[sub_resource type="BoxMesh" id="BoxMesh_h2yge"]
+
 [sub_resource type="SphereMesh" id="SphereMesh_1bvp3"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_7mycd"]
 
 [sub_resource type="Resource" id="Resource_5vw27"]
 script = ExtResource("6_272bh")
 hrtf_interpolation_bilinear = true
-
-[sub_resource type="BoxMesh" id="BoxMesh_7mycd"]
+ambisonic_order = 3
 
 [node name="Node3D" type="Node3D" unique_id=1129802793]
 
+[node name="Environment" type="Node3D" parent="." unique_id=738199238]
+
+[node name="ResonanceStaticScene" type="ResonanceStaticScene" parent="Environment" unique_id=1842122486]
+static_scene_asset = ExtResource("9_4c57u")
+scene_name_when_exported = "main"
+export_hash = -4712195842958758663
+
+[node name="ResonanceProbeVolume" type="ResonanceProbeVolume" parent="Environment" unique_id=2036057140]
+probe_data = ExtResource("5_kek77")
+bake_config = SubResource("Resource_2cqfq")
+bake_sources = [NodePath("../../Sphere/ResonancePlayer")]
+region_size = Vector3(20, 10, 20)
+show_probes = false
+generation_type = 2
+spacing = 1.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Environment" unique_id=1656118768]
+environment = SubResource("Environment_w48qg")
+
 [node name="XROrigin3D" type="XROrigin3D" parent="." unique_id=1092155025]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.44763857)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.7074163)
 script = ExtResource("1_ig7tw")
 
 [node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D" unique_id=1307463593]
 
 [node name="XRController3D_left" type="XRController3D" parent="XROrigin3D" unique_id=1619434255]
 tracker = &"left_hand"
+script = ExtResource("2_ycdy4")
 
-[node name="XRController3D2_right" type="XRController3D" parent="XROrigin3D" unique_id=1692960622]
+[node name="ResonancePlayer" type="ResonancePlayer" parent="XROrigin3D/XRController3D_left" unique_id=225213980]
+player_config = SubResource("Resource_7mycd")
+stream = ExtResource("4_dg77c")
+attenuation_model = 1
+unit_size = 3.89
+
+[node name="XRController3D_right" type="XRController3D" parent="XROrigin3D" unique_id=1692960622]
 tracker = &"right_hand"
+script = ExtResource("2_efxa6")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=2014682767]
-transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, -0.2358566, 0, 0)
+[node name="ResonancePlayer" type="ResonancePlayer" parent="XROrigin3D/XRController3D_right" unique_id=1971740323]
+player_config = SubResource("Resource_7mycd")
+stream = ExtResource("4_dg77c")
+attenuation_model = 1
+unit_size = 3.89
+
+[node name="OrbitingCube" type="Node3D" parent="." unique_id=922653982]
+script = ExtResource("9_dg77c")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="OrbitingCube" unique_id=2014682767]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, -0.49906248, 0, 0)
 mesh = SubResource("BoxMesh_h2yge")
 
-[node name="ResonancePlayer" type="ResonancePlayer" parent="MeshInstance3D" unique_id=2027773338]
+[node name="ResonancePlayer" type="ResonancePlayer" parent="OrbitingCube/MeshInstance3D" unique_id=2027773338]
 player_config = SubResource("Resource_7mycd")
 stream = ExtResource("2_h2yge")
 attenuation_model = 1
 unit_size = 0.1
-autoplay = true
 
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="." unique_id=1242979464]
-transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0.290155, 0, 0)
+[node name="Sphere" type="MeshInstance3D" parent="." unique_id=1242979464]
+transform = Transform3D(0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1, 0.290155, 0, 3.6172638)
 mesh = SubResource("SphereMesh_1bvp3")
 
-[node name="AudioStreamPlayer3D2" type="AudioStreamPlayer3D" parent="MeshInstance3D2" unique_id=1951203307]
+[node name="AudioStreamPlayer3D2" type="AudioStreamPlayer3D" parent="Sphere" unique_id=1951203307]
 transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
 stream = ExtResource("3_1bvp3")
 attenuation_model = 1
 unit_size = 0.1
 
-[node name="ResonanceProbeVolume" type="ResonanceProbeVolume" parent="." unique_id=2036057140]
-probe_data = ExtResource("5_kek77")
+[node name="ResonancePlayer" type="ResonancePlayer" parent="Sphere" unique_id=1026003842]
+player_config = SubResource("Resource_7mycd")
+transform = Transform3D(10, 0, 0, 0, 10, 0, 0, 0, 10, 0, 0, 0)
+stream = ExtResource("4_dg77c")
+attenuation_model = 1
+unit_size = 3.89
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="." unique_id=208725283]
+transform = Transform3D(0.01, 0, 0, 0, 0.1, 0, 0, 0, 0.1, -1.9135187, 0, 0.016321301)
+mesh = SubResource("BoxMesh_7mycd")
+
+[node name="ResonanceStaticGeometry" type="ResonanceStaticGeometry" parent="MeshInstance3D3" unique_id=889157263]
+material = ExtResource("6_4c57u")
 
 [node name="ResonanceRuntime" type="Node" parent="." unique_id=1414826067]
 process_priority = 100
@@ -75,14 +136,12 @@ script = ExtResource("5_7mycd")
 runtime = SubResource("Resource_5vw27")
 metadata/_custom_type_script = "uid://ce4ndx5pja3qn"
 
-[node name="MeshInstance3D3" type="MeshInstance3D" parent="." unique_id=208725283]
-transform = Transform3D(0.1, 0, 0, 0, 1, 0, 0, 0, 1, -1.9135187, 0, 0.016321301)
+[node name="BigWall" type="MeshInstance3D" parent="." unique_id=617458317]
+transform = Transform3D(-4.371139e-09, 0, 7, 0, 7, 0, -0.1, 0, -3.059797e-07, 0.027820349, 0, 4.132197)
 mesh = SubResource("BoxMesh_7mycd")
 
-[node name="ResonanceStaticGeometry" type="ResonanceStaticGeometry" parent="MeshInstance3D3" unique_id=889157263]
-material = ExtResource("7_272bh")
+[node name="ResonanceStaticGeometry" type="ResonanceStaticGeometry" parent="BigWall" unique_id=1936242762]
+material = ExtResource("14_w48qg")
 
-[node name="ResonanceStaticScene" type="ResonanceStaticScene" parent="." unique_id=1842122486]
-static_scene_asset = ExtResource("9_4c57u")
-scene_name_when_exported = "main"
-export_hash = 6608833066847112021
+[connection signal="button_pressed" from="XROrigin3D/XRController3D_left" to="XROrigin3D/XRController3D_left" method="_on_button_pressed"]
+[connection signal="button_pressed" from="XROrigin3D/XRController3D_right" to="XROrigin3D/XRController3D_right" method="_on_button_pressed"]
